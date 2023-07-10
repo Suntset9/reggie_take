@@ -20,3 +20,6 @@ mybatis-plus:
     db-config:
       id-type: ASSIGN_ID
     banner: off
+
+reggie:
+  path: D:\project\reggie\img\

@@ -130,10 +130,12 @@ public class EmployeeController {
         //将更新的时间和更改人传入
         //employee.setUpdateTime(LocalDateTime.now());
         //employee.setUpdateUser(empid);
+
         //根据id把修改好的属性传入id
         employeeService.updateById(employee );
         //查看线程id
         long id = Thread.currentThread().getId();
+
         log.info("线程id为：{}",id);
 
         return R.success("员工信息修改成功");
