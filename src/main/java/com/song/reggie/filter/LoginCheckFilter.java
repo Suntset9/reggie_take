@@ -33,20 +33,22 @@ public class LoginCheckFilter implements Filter {
 
 
         //将拦截到的URI输出到日志，{}是占位符，将自动填充request.getRequestURI()的内容
-        log.info("拦截到的URI：{}",httpServletRequest.getRequestURI());
+        //log.info("拦截到的URI：{}",httpServletRequest.getRequestURI());
         //chain.doFilter(httpServletRequest, httpServletResponse);
 
         // 1.获取本次请求的URI
         String uri = httpServletRequest.getRequestURI();
 
-        //定义不需要被拦截的请求
+        //定义不需要处理的请求
         String[] urls = new String[]{
                 "/employee/login",
                 "/employee/logout",
                 "/backend/**",
                 "/front/**",
-                "/common/**"
-
+                "/common/**",
+                //对用户登陆操作放行
+                "/user/sendMsg",
+                "/user/login"
         };
 
         /**
@@ -57,12 +59,12 @@ public class LoginCheckFilter implements Filter {
         boolean check = check(urls, uri);
         // 3.如果不需要处理，则直接放行
         if (check){
-            //log.info("本次请求：{}，不需要处理",uri);
+            log.info("本次请求：{}，不需要处理",uri);
             chain.doFilter(httpServletRequest, httpServletResponse);
             return;
         }
 
-        //4、判断登录状态，如果已登录，则直接放行
+        //4.1 判断登录状态，如果已登录，则直接放行
         //当初存的session是employee，所以这里就拿它判断
         if (httpServletRequest.getSession().getAttribute("employee") != null) {
             log.info("用户已登录，id为:{}",httpServletRequest.getSession().getAttribute("employee"));
@@ -73,9 +75,20 @@ public class LoginCheckFilter implements Filter {
             //将session中的id传递给Threadlocal，
             Long empId = (Long) httpServletRequest.getSession().getAttribute("employee");
             //使用BaseContext封装id
-            BaseContext.setThreadLocal(empId);
+            BaseContext.setCurrentId(empId);
 
             chain.doFilter(httpServletRequest,httpServletResponse);
+            return;
+        }
+
+        //4.2 判断用户是否登录
+        if(httpServletRequest.getSession().getAttribute("user") != null){
+            log.info("用户已登录，用户id为：{}",httpServletRequest.getSession().getAttribute("user"));
+
+            Long userId = (Long)httpServletRequest.getSession().getAttribute("user");
+            BaseContext.setCurrentId(userId);
+
+            chain.doFilter(request,response);
             return;
         }
 

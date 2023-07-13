@@ -11,7 +11,7 @@ public class BaseContext {
      * 设置值
      * @param id
      */
-    public static void setThreadLocal(Long id){
+    public static void setCurrentId(Long id){
         threadLocal.set(id);
     }
 

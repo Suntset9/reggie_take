@@ -14,11 +14,11 @@ import java.util.List;
  */
 @Data
 public class DishDto extends Dish {
-    private List<DishFlavor> flavors = new ArrayList<>();
+    private List<DishFlavor> flavors = new ArrayList<>();//菜品口味
 
-    private String categoryName;
+    private String categoryName;//套餐名称
 
-    private Integer copies;
+    private Integer copies;//？
 
     /**
      *
