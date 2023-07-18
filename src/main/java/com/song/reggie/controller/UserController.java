@@ -1,6 +1,7 @@
 package com.song.reggie.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.song.reggie.common.BaseContext;
 import com.song.reggie.common.R;
 import com.song.reggie.entity.User;
 import com.song.reggie.service.UserService;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.mail.MessagingException;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.util.Map;
 
@@ -78,5 +80,15 @@ public class UserController {
         }
         return R.error("登录失败");
     }
+
+    //用户登出
+    @PostMapping("/loginout")
+    public R<String> loginout(HttpServletRequest request){
+        //清理Session中保存的当前用户登录的id
+
+        request.getSession().removeAttribute("user");
+        return R.success("退出成功");
+    }
+
 
 }

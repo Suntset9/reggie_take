@@ -64,7 +64,7 @@ public class SetmealServiceImpl extends ServiceImpl<SetmealMapper, Setmeal> impl
 
         //查询菜品对应口味信息
         //根据dish_id来查询对应的菜品口味数据
-        queryWrapper.eq(SetmealDish::getDishId, id);
+        queryWrapper.eq(SetmealDish::getSetmealId, id);
         //获取查询的结果
         List<SetmealDish> flavors = setmealDishService.list(queryWrapper);
         //并将其赋给setmealDto

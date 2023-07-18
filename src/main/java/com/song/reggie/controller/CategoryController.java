@@ -89,7 +89,7 @@ public class CategoryController {
     }
 
     /**
-     * 根据条件查询分类数据
+     * 根据条件查询分类数据,新增套餐功能下，查询套餐分类 将分类数据展示在下拉框里
      * @param category
      * @return
      */

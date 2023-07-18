@@ -9,7 +9,9 @@ import com.song.reggie.dto.SetmealDto;
 import com.song.reggie.entity.Category;
 import com.song.reggie.entity.Dish;
 import com.song.reggie.entity.Setmeal;
+import com.song.reggie.entity.SetmealDish;
 import com.song.reggie.service.CategoryService;
+import com.song.reggie.service.DishService;
 import com.song.reggie.service.SetmealDishService;
 import com.song.reggie.service.SetmealService;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +39,9 @@ public class SetmealController {
 
     @Autowired
     private SetmealDishService setmealDishService;//套餐菜品关系
+
+    @Autowired
+    private DishService dishService;
 
     @PostMapping
     public R<String> save(@RequestBody SetmealDto setmealDto){
@@ -171,6 +176,47 @@ public class SetmealController {
         return R.success("修改套餐成功");
     }
 
+    /**
+     * 根据条件查询套餐数据
+     * @param setmeal
+     * @return
+     */
+    @GetMapping("/list")
+    public R<List<Setmeal>> list (Setmeal setmeal){
+        LambdaQueryWrapper<Setmeal> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Setmeal::getCategoryId,setmeal.getCategoryId());
+        queryWrapper.eq(Setmeal::getStatus,setmeal.getStatus());
+        queryWrapper.orderByDesc(Setmeal::getUpdateTime);
 
+        List<Setmeal> list = setmealService.list(queryWrapper);
+        return R.success(list);
+    }
 
+    /**
+     * 点击图片查看套餐详情功能
+     * @param id
+     * @return
+     */
+    @GetMapping("/dish/{id}")
+    public R<List<DishDto>> showSetmealDish(@PathVariable Long id) {
+        //条件构造器
+        LambdaQueryWrapper<SetmealDish> dishLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        //手里的数据只有setmealId
+        dishLambdaQueryWrapper.eq(SetmealDish::getSetmealId, id);
+        //查询数据
+        List<SetmealDish> records = setmealDishService.list(dishLambdaQueryWrapper);
+        List<DishDto> dtoList = records.stream().map((item) -> {
+            DishDto dishDto = new DishDto();
+            //copy数据
+            BeanUtils.copyProperties(item,dishDto);
+            //查询对应菜品id
+            Long dishId = item.getDishId();
+            //根据菜品id获取具体菜品数据，这里要自动装配 dishService
+            Dish dish = dishService.getById(dishId);
+            //其实主要数据是要那个图片，不过我们这里多copy一点也没事
+            BeanUtils.copyProperties(dish,dishDto);
+            return dishDto;
+        }).collect(Collectors.toList());
+        return R.success(dtoList);
+    }
 }

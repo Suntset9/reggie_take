@@ -57,7 +57,7 @@ public class MailUtils {
         // 设置邮件的内容体
         message.setContent("尊敬的用户:你好!\n注册验证码为:" + code + "(有效期为一分钟,请勿告知他人)", "text/html;charset=UTF-8");
         // 最后当然就是发送邮件啦
-        Transport.send(message);
+        //Transport.send(message);
     }
 
     public static String achieveCode() {  //由于数字 1 、 0 和字母 O 、l 有时分不清楚，所以，没有数字 1 、 0

@@ -28,7 +28,7 @@ function setmealListApi(data) {
 function cartListApi(data) {
     return $axios({
         'url': '/shoppingCart/list',
-        //'url': '/front/cartData.json',
+        // 'url': '/front/cartData.json',开启购物车功能后就不需要使用假数据了
         'method': 'get',
         params:{...data}
     })
