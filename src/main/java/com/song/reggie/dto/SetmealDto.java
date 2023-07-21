@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.List;
 
 /**
- * 套
+ * 套餐
  */
 @Data
 public class SetmealDto extends Setmeal {

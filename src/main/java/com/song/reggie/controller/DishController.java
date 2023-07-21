@@ -18,10 +18,12 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -48,6 +50,9 @@ public class DishController {
     @Autowired
     public CategoryService categoryService;
 
+    @Autowired
+    private RedisTemplate redisTemplate;
+
     /**
      * 新增菜品
      * @param dishDto
@@ -58,7 +63,9 @@ public class DishController {
         log.info(dishDto.toString());
 
         dishService.saveWithFlavor(dishDto);
-
+        //对菜品更新后进行缓存清理，对数据进行同步
+        String key = "dish_"+ dishDto.getCategoryName()+"_"+dishDto.getStatus();
+        redisTemplate.delete(key);
         return R.success("新增菜品成功");
     }
 
@@ -133,8 +140,11 @@ public class DishController {
      */
     @PutMapping
     public R<String> update(@RequestBody DishDto dishDto){
-        log.info(dishDto.toString());
+        log.info("接收的修改菜品数据为：{}",dishDto);
         dishService.updateWithFlavor(dishDto);
+        //对菜品更新后进行缓存清理，对数据进行同步
+        String key = "dish_"+ dishDto.getCategoryName()+"_"+dishDto.getStatus();
+        redisTemplate.delete(key);
         return R.success("修改菜品成功");
     }
 
@@ -143,6 +153,8 @@ public class DishController {
      * 对菜品批量或者是单个 进行停售或者是起售
      * 0?ids=1678085611082313730 发送了id和状态，使用两个参数接收
      * @return
+     *
+     * 对停售菜品进行缓存清理操作
      */
     @PostMapping("/status/{status}")
     //这个参数这里一定记得加注解才能获取到参数，否则这里非常容易出问题
@@ -156,11 +168,12 @@ public class DishController {
         List<Dish> list = dishService.list(queryWrapper);
         //循环遍历
         for (Dish dish : list) {
-
             if (dish != null) {
                 //判断不为空，则根据前端三元运算符，传回来的值写入数据库
+                String key = "dish_"+dish.getCategoryId()+"_1";
                 dish.setStatus(status);
                 dishService.updateById(dish);
+                redisTemplate.delete(key);
             }
         }
         return R.success("售卖状态修改成功");
@@ -211,9 +224,21 @@ public class DishController {
      * @return
      * 注：重点搞清楚数据库中的关系 与实体类和dto中对应的关系
      * 前端调用方法，将参数传递过来，使用lamba表达式，对实体类中的属性进行get方法获取从而查询数据库中是否有与前端相同测数据，
+     *
+     * Redis的缓存操作，先进行key的查询，查询到则直接返回，没有查询到则进行数据库查询后缓存到Redis中，方便下次查询
      */
     @GetMapping("/list")
     public R<List<DishDto>> get(Dish dish) {
+        List<DishDto> dishDtoList;
+        //定义Redis的Key
+        String key = "dish_"+dish.getCategoryId()+"_"+dish.getStatus();
+        //获取Redis中的数据
+        dishDtoList  = (List<DishDto>) redisTemplate.opsForValue().get(key);
+        //如果有，则直接返回
+        if (dishDtoList != null){
+            return R.success(dishDtoList);
+        }
+
         //条件查询器
         LambdaQueryWrapper<Dish> queryWrapper = new LambdaQueryWrapper<>();
         //根据传进来的categoryId查询
@@ -226,7 +251,7 @@ public class DishController {
         List<Dish> list = dishService.list(queryWrapper);
         log.info("查询到的菜品信息list:{}",list);
         //item就是list中的每一条数据，相当于遍历了
-        List<DishDto> dishDtoList = list.stream().map((item) -> {
+        dishDtoList = list.stream().map((item) -> {
             //创建一个dishDto对象
             DishDto dishDto = new DishDto();
             //将item的属性全都copy到dishDto里
@@ -253,6 +278,9 @@ public class DishController {
             return dishDto;
             //将所有返回结果收集起来，封装成List
         }).collect(Collectors.toList());
+
+        //将查询的代码结果让Redis进行缓存，并设置存活60分钟
+        redisTemplate.opsForValue().set(key,dishDtoList,60, TimeUnit.MINUTES);
         return R.success(dishDtoList);
     }
 

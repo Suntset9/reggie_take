@@ -6,6 +6,9 @@ import com.song.reggie.entity.Orders;
 import lombok.Data;
 import java.util.List;
 
+/**
+ * 订单
+ */
 @Data
 public class OrdersDto extends Orders {
 
