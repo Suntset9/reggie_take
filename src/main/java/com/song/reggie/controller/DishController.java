@@ -173,6 +173,7 @@ public class DishController {
                 String key = "dish_"+dish.getCategoryId()+"_1";
                 dish.setStatus(status);
                 dishService.updateById(dish);
+                //对停售菜品进行缓存清理
                 redisTemplate.delete(key);
             }
         }
