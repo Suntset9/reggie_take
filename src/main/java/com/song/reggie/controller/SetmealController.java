@@ -1,6 +1,5 @@
 package com.song.reggie.controller;
 
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.song.reggie.common.R;
@@ -17,6 +16,8 @@ import com.song.reggie.service.SetmealService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -44,6 +45,7 @@ public class SetmealController {
     private DishService dishService;
 
     @PostMapping
+    @CacheEvict(value = "setmealCache", allEntries = true) //清除setmealCache名称下的所有缓存数据
     public R<String> save(@RequestBody SetmealDto setmealDto){
         log.info("套餐信息：{}",setmealDto);
 
@@ -142,6 +144,7 @@ public class SetmealController {
      */
     @PostMapping("/status/{status}")
     //这个参数这里一定记得加注解才能获取到参数，否则这里非常容易出问题
+    @CacheEvict(value = "setmealCache", allEntries = true) //清除setmealCache名称下的所有缓存数据
     public R<String> status(@PathVariable("status") Integer status, @RequestParam List<Long> ids) {
         //log.info("status:{}",status);
         //log.info("ids:{}",ids);
@@ -170,6 +173,7 @@ public class SetmealController {
      * @return
      */
     @PutMapping
+    @CacheEvict(value = "setmealCache", allEntries = true) //清除setmealCache名称下的所有缓存数据
     public R<String> update(@RequestBody SetmealDto setmealDto){
         log.info(setmealDto.toString());
         setmealService.updateWithSetmeal(setmealDto);
@@ -182,10 +186,11 @@ public class SetmealController {
      * @return
      */
     @GetMapping("/list")
+    @Cacheable(value = "setmealCache",key = "#setmeal.categoryId+'-' + #setmeal.status")
     public R<List<Setmeal>> list (Setmeal setmeal){
         LambdaQueryWrapper<Setmeal> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Setmeal::getCategoryId,setmeal.getCategoryId());
-        queryWrapper.eq(Setmeal::getStatus,setmeal.getStatus());
+        queryWrapper.eq(setmeal.getCategoryId() != null,Setmeal::getCategoryId,setmeal.getCategoryId());
+        queryWrapper.eq(setmeal.getStatus() != null, Setmeal::getStatus,setmeal.getStatus());
         queryWrapper.orderByDesc(Setmeal::getUpdateTime);
 
         List<Setmeal> list = setmealService.list(queryWrapper);
