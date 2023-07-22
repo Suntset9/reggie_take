@@ -45,7 +45,8 @@ spring:
     allow-bean-definition-overriding: true #配置允许bean定义覆盖配置项
 
   redis:
-    host: 127.0.0.1
+#    host: 127.0.0.1
+    host: 192.168.159.153
     port: 6379
     password: 123456
     database: 0
@@ -64,5 +65,5 @@ mybatis-plus:
     banner: off
 
 reggie:
-  path: D:\project\reggie\img\
-#  path: /opt/app/reggie_img/
+#  path: D:\project\reggie\img\
+  path: /opt/app/reggie_img/
