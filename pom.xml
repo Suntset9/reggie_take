@@ -116,6 +116,13 @@
             <version>4.0.0-RC1</version>
         </dependency>
 
+        <!--项目集成Knife4j,自动生成接口文档-->
+        <dependency>
+            <groupId>com.github.xiaoymin</groupId>
+            <artifactId>knife4j-spring-boot-starter</artifactId>
+            <version>3.0.2</version>
+        </dependency>
+
     </dependencies>
 
     <build>

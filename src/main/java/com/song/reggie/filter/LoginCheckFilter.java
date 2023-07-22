@@ -48,7 +48,12 @@ public class LoginCheckFilter implements Filter {
                 "/common/**",
                 //对用户登陆操作放行
                 "/user/sendMsg",
-                "/user/login"
+                "/user/login",
+                //对Swagger及KJnife4j相关静态资源放行，实现不登陆访问
+                "/doc.html",
+                "/webjars/**",
+                "/swagger-resources",
+                "/v2/api-docs"
         };
 
         /**
